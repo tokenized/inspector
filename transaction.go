@@ -24,8 +24,10 @@ var (
 		actions.CodeContractAmendment:        true,
 		actions.CodeBodyOfAgreementOffer:     true,
 		actions.CodeBodyOfAgreementAmendment: true,
-		actions.CodeAssetDefinition:          true,
-		actions.CodeAssetModification:        true,
+		actions.CodeInstrumentDefinition:     true,
+		actions.CodeInstrumentModification:   true,
+		actions.CodeAssetDefinition:          true, // Deprecated backwards compatibility
+		actions.CodeAssetModification:        true, // Deprecated backwards compatibility
 		actions.CodeTransfer:                 true,
 		actions.CodeProposal:                 true,
 		actions.CodeBallotCast:               true,
@@ -35,7 +37,8 @@ var (
 
 	// Protocol response message types
 	responseMessageTypes = map[string]bool{
-		actions.CodeAssetCreation:            true,
+		actions.CodeInstrumentCreation:       true,
+		actions.CodeAssetCreation:            true, // Deprecated backwards compatibility
 		actions.CodeContractFormation:        true,
 		actions.CodeBodyOfAgreementFormation: true,
 		actions.CodeSettlement:               true,

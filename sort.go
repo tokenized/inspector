@@ -14,7 +14,7 @@ func (itx Transaction) Timestamp() *uint64 {
 		}
 
 		switch msg := output.Action.(type) {
-		case *actions.AssetCreation:
+		case *actions.InstrumentCreation:
 			return &msg.Timestamp
 
 		case *actions.ContractFormation:
