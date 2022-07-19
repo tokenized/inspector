@@ -81,7 +81,7 @@ func Test_Transaction_Serialize(t *testing.T) {
 		t.Fatalf("Failed to add output : %s", err)
 	}
 
-	if err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
+	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
 		t.Fatalf("Failed to sign tx : %s", err)
 	}
 
@@ -174,7 +174,7 @@ func Test_Transaction_Serialize_v2_to_v3(t *testing.T) {
 		t.Fatalf("Failed to add output : %s", err)
 	}
 
-	if err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
+	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
 		t.Fatalf("Failed to sign tx : %s", err)
 	}
 

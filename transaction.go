@@ -577,3 +577,41 @@ func (itx *Transaction) Read(r io.Reader, isTest bool) error {
 
 	return nil
 }
+
+// Implement TransactionWithOutputs interface
+
+func (itx *Transaction) TxID() bitcoin.Hash32 {
+	return itx.Hash
+}
+
+func (itx *Transaction) GetMsgTx() *wire.MsgTx {
+	return itx.MsgTx
+}
+
+func (itx *Transaction) InputCount() int {
+	return len(itx.MsgTx.TxIn)
+}
+
+func (itx *Transaction) Input(index int) *wire.TxIn {
+	return itx.MsgTx.TxIn[index]
+}
+
+func (itx *Transaction) InputOutput(index int) (*wire.TxOut, error) {
+	if index >= len(itx.Inputs) {
+		return nil, errors.New("Input output missing")
+	}
+
+	input := itx.Inputs[index]
+	return &wire.TxOut{
+		Value:         input.Value,
+		LockingScript: input.LockingScript,
+	}, nil
+}
+
+func (itx *Transaction) OutputCount() int {
+	return len(itx.MsgTx.TxOut)
+}
+
+func (itx *Transaction) Output(index int) *wire.TxOut {
+	return itx.MsgTx.TxOut[index]
+}
