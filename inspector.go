@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/tokenized/pkg/bitcoin"
+	"github.com/tokenized/pkg/expanded_tx"
 	"github.com/tokenized/pkg/txbuilder"
 	"github.com/tokenized/pkg/wire"
 
@@ -153,6 +154,41 @@ func NewTransactionFromTxBuilder(ctx context.Context, tx *txbuilder.TxBuilder,
 			Index:         tx.MsgTx.TxIn[i].PreviousOutPoint.Index,
 			Value:         input.Value,
 			LockingScript: input.LockingScript,
+		})
+	}
+
+	if err := result.PromoteFromUTXOs(ctx, utxos, isTest); err != nil {
+		return result, errors.Wrap(err, "promote")
+	}
+
+	return result, nil
+}
+
+func NewTransactionFromTransactionWithOutputs(ctx context.Context,
+	tx expanded_tx.TransactionWithOutputs, isTest bool) (*Transaction, error) {
+
+	result, err := NewTransactionFromWire(ctx, tx.GetMsgTx(), isTest)
+	if err != nil {
+		return result, errors.Wrap(err, "new from wire")
+	}
+
+	inputCount := tx.InputCount()
+	utxos := make([]bitcoin.UTXO, 0, inputCount)
+	for i := 0; i < inputCount; i++ {
+		input := tx.Input(i)
+		output, err := tx.InputOutput(i)
+		if err != nil {
+			return nil, errors.Wrapf(err, "input %d", i)
+		}
+
+		if input.PreviousOutPoint.Index == 0xffffffff {
+			continue // skip coinbase inputs
+		}
+		utxos = append(utxos, bitcoin.UTXO{
+			Hash:          input.PreviousOutPoint.Hash,
+			Index:         input.PreviousOutPoint.Index,
+			Value:         output.Value,
+			LockingScript: output.LockingScript,
 		})
 	}
 
