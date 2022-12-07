@@ -48,7 +48,7 @@ var (
 		actions.CodeFreeze:                   true,
 		actions.CodeThaw:                     true,
 		actions.CodeConfiscation:             true,
-		actions.CodeReconciliation:           true,
+		actions.CodeDeprecatedReconciliation: true,
 		actions.CodeRejection:                true,
 	}
 )
@@ -331,24 +331,12 @@ func (itx *Transaction) IsRequest() bool {
 	itx.lock.RLock()
 	defer itx.lock.RUnlock()
 
-	for _, input := range itx.Inputs {
-		if input.Action == nil {
-			continue
-		}
-
-		_, ok := requestMessageTypes[input.Action.Code()]
-		if ok {
-			return true
-		}
-	}
-
 	for _, output := range itx.Outputs {
 		if output.Action == nil {
 			continue
 		}
 
-		_, ok := requestMessageTypes[output.Action.Code()]
-		if ok {
+		if _, ok := requestMessageTypes[output.Action.Code()]; ok {
 			return true
 		}
 	}
@@ -360,17 +348,6 @@ func (itx *Transaction) IsRequest() bool {
 func (itx *Transaction) IsResponse() bool {
 	itx.lock.RLock()
 	defer itx.lock.RUnlock()
-
-	for _, input := range itx.Inputs {
-		if input.Action == nil {
-			continue
-		}
-
-		_, ok := responseMessageTypes[input.Action.Code()]
-		if ok {
-			return true
-		}
-	}
 
 	for _, output := range itx.Outputs {
 		if output.Action == nil {

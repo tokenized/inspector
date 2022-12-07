@@ -30,7 +30,7 @@ func (itx Transaction) Timestamp() *uint64 {
 			return &msg.Timestamp
 		case *actions.Confiscation:
 			return &msg.Timestamp
-		case *actions.Reconciliation:
+		case *actions.DeprecatedReconciliation:
 			return &msg.Timestamp
 
 		// Governance
