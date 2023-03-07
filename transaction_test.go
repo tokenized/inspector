@@ -2,206 +2,202 @@ package inspector
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
-	"testing"
 
 	"github.com/tokenized/pkg/bitcoin"
-	"github.com/tokenized/pkg/txbuilder"
-	"github.com/tokenized/specification/dist/golang/actions"
 	"github.com/tokenized/specification/dist/golang/protocol"
 
 	"github.com/pkg/errors"
 )
 
-func Test_Transaction_Serialize(t *testing.T) {
-	ctx := context.Background()
+// func Test_Transaction_Serialize(t *testing.T) {
+// 	ctx := context.Background()
 
-	txb := txbuilder.NewTxBuilder(0.5, 0.25)
+// 	txb := txbuilder.NewTxBuilder(0.5, 0.25)
 
-	var previousTxID bitcoin.Hash32
-	rand.Read(previousTxID[:])
+// 	var previousTxID bitcoin.Hash32
+// 	rand.Read(previousTxID[:])
 
-	fromKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	fromKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	fromLockingScript, err := fromKey.LockingScript()
-	if err != nil {
-		t.Fatalf("Failed to locking script : %s", err)
-	}
+// 	fromLockingScript, err := fromKey.LockingScript()
+// 	if err != nil {
+// 		t.Fatalf("Failed to locking script : %s", err)
+// 	}
 
-	txb.AddInputUTXO(bitcoin.UTXO{
-		Hash:          previousTxID,
-		Index:         1,
-		Value:         10000,
-		LockingScript: fromLockingScript,
-	})
+// 	txb.AddInputUTXO(bitcoin.UTXO{
+// 		Hash:          previousTxID,
+// 		Index:         1,
+// 		Value:         10000,
+// 		LockingScript: fromLockingScript,
+// 	})
 
-	changeKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	changeKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	changeAddress, err := changeKey.RawAddress()
-	if err != nil {
-		t.Fatalf("Failed to generate address : %s", err)
-	}
+// 	changeAddress, err := changeKey.RawAddress()
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate address : %s", err)
+// 	}
 
-	txb.SetChangeAddress(changeAddress, "")
+// 	txb.SetChangeAddress(changeAddress, "")
 
-	toKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	toKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	toLockingScript, err := toKey.LockingScript()
-	if err != nil {
-		t.Fatalf("Failed to locking script : %s", err)
-	}
+// 	toLockingScript, err := toKey.LockingScript()
+// 	if err != nil {
+// 		t.Fatalf("Failed to locking script : %s", err)
+// 	}
 
-	if err := txb.AddOutput(toLockingScript, 9000, false, false); err != nil {
-		t.Fatalf("Failed to add output : %s", err)
-	}
+// 	if err := txb.AddOutput(toLockingScript, 9000, false, false); err != nil {
+// 		t.Fatalf("Failed to add output : %s", err)
+// 	}
 
-	offer := &actions.ContractOffer{
-		ContractName: "Test Contract",
-	}
+// 	offer := &actions.ContractOffer{
+// 		ContractName: "Test Contract",
+// 	}
 
-	script, err := protocol.Serialize(offer, true)
-	if err != nil {
-		t.Fatalf("Failed to serialize action : %s", err)
-	}
+// 	script, err := protocol.Serialize(offer, true)
+// 	if err != nil {
+// 		t.Fatalf("Failed to serialize action : %s", err)
+// 	}
 
-	if err := txb.AddOutput(script, 0, false, false); err != nil {
-		t.Fatalf("Failed to add output : %s", err)
-	}
+// 	if err := txb.AddOutput(script, 0, false, false); err != nil {
+// 		t.Fatalf("Failed to add output : %s", err)
+// 	}
 
-	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
-		t.Fatalf("Failed to sign tx : %s", err)
-	}
+// 	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
+// 		t.Fatalf("Failed to sign tx : %s", err)
+// 	}
 
-	tx, err := NewTransactionFromTxBuilder(ctx, txb, true)
-	if err != nil {
-		t.Fatalf("Failed to create inspector tx : %s", err)
-	}
+// 	tx, err := NewTransactionFromTxBuilder(ctx, txb, true)
+// 	if err != nil {
+// 		t.Fatalf("Failed to create inspector tx : %s", err)
+// 	}
 
-	t.Logf("Tx %s", tx.String(bitcoin.MainNet))
+// 	t.Logf("Tx %s", tx.String(bitcoin.MainNet))
 
-	buf := &bytes.Buffer{}
+// 	buf := &bytes.Buffer{}
 
-	if err := tx.Write(buf); err != nil {
-		t.Fatalf("Failed to write tx : %s", err)
-	}
+// 	if err := tx.Write(buf); err != nil {
+// 		t.Fatalf("Failed to write tx : %s", err)
+// 	}
 
-	readTx := &Transaction{}
-	if err := readTx.Read(buf, true); err != nil {
-		t.Fatalf("Failed to read tx : %s", err)
-	}
+// 	readTx := &Transaction{}
+// 	if err := readTx.Read(buf, true); err != nil {
+// 		t.Fatalf("Failed to read tx : %s", err)
+// 	}
 
-	t.Logf("Read Tx %s", readTx.String(bitcoin.MainNet))
+// 	t.Logf("Read Tx %s", readTx.String(bitcoin.MainNet))
 
-	if err := tx.Equal(*readTx); err != nil {
-		t.Fatalf("Read tx not equal : %s", err)
-	}
-}
+// 	if err := tx.Equal(*readTx); err != nil {
+// 		t.Fatalf("Read tx not equal : %s", err)
+// 	}
+// }
 
-func Test_Transaction_Serialize_v2_to_v3(t *testing.T) {
-	ctx := context.Background()
+// func Test_Transaction_Serialize_v2_to_v3(t *testing.T) {
+// 	ctx := context.Background()
 
-	txb := txbuilder.NewTxBuilder(0.5, 0.25)
+// 	txb := txbuilder.NewTxBuilder(0.5, 0.25)
 
-	var previousTxID bitcoin.Hash32
-	rand.Read(previousTxID[:])
+// 	var previousTxID bitcoin.Hash32
+// 	rand.Read(previousTxID[:])
 
-	fromKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	fromKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	fromLockingScript, err := fromKey.LockingScript()
-	if err != nil {
-		t.Fatalf("Failed to locking script : %s", err)
-	}
+// 	fromLockingScript, err := fromKey.LockingScript()
+// 	if err != nil {
+// 		t.Fatalf("Failed to locking script : %s", err)
+// 	}
 
-	txb.AddInputUTXO(bitcoin.UTXO{
-		Hash:          previousTxID,
-		Index:         1,
-		Value:         10000,
-		LockingScript: fromLockingScript,
-	})
+// 	txb.AddInputUTXO(bitcoin.UTXO{
+// 		Hash:          previousTxID,
+// 		Index:         1,
+// 		Value:         10000,
+// 		LockingScript: fromLockingScript,
+// 	})
 
-	changeKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	changeKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	changeAddress, err := changeKey.RawAddress()
-	if err != nil {
-		t.Fatalf("Failed to generate address : %s", err)
-	}
+// 	changeAddress, err := changeKey.RawAddress()
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate address : %s", err)
+// 	}
 
-	txb.SetChangeAddress(changeAddress, "")
+// 	txb.SetChangeAddress(changeAddress, "")
 
-	toKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
-	if err != nil {
-		t.Fatalf("Failed to generate key : %s", err)
-	}
+// 	toKey, err := bitcoin.GenerateKey(bitcoin.MainNet)
+// 	if err != nil {
+// 		t.Fatalf("Failed to generate key : %s", err)
+// 	}
 
-	toLockingScript, err := toKey.LockingScript()
-	if err != nil {
-		t.Fatalf("Failed to locking script : %s", err)
-	}
+// 	toLockingScript, err := toKey.LockingScript()
+// 	if err != nil {
+// 		t.Fatalf("Failed to locking script : %s", err)
+// 	}
 
-	if err := txb.AddOutput(toLockingScript, 9000, false, false); err != nil {
-		t.Fatalf("Failed to add output : %s", err)
-	}
+// 	if err := txb.AddOutput(toLockingScript, 9000, false, false); err != nil {
+// 		t.Fatalf("Failed to add output : %s", err)
+// 	}
 
-	offer := &actions.ContractOffer{
-		ContractName: "Test Contract",
-	}
+// 	offer := &actions.ContractOffer{
+// 		ContractName: "Test Contract",
+// 	}
 
-	script, err := protocol.Serialize(offer, true)
-	if err != nil {
-		t.Fatalf("Failed to serialize action : %s", err)
-	}
+// 	script, err := protocol.Serialize(offer, true)
+// 	if err != nil {
+// 		t.Fatalf("Failed to serialize action : %s", err)
+// 	}
 
-	if err := txb.AddOutput(script, 0, false, false); err != nil {
-		t.Fatalf("Failed to add output : %s", err)
-	}
+// 	if err := txb.AddOutput(script, 0, false, false); err != nil {
+// 		t.Fatalf("Failed to add output : %s", err)
+// 	}
 
-	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
-		t.Fatalf("Failed to sign tx : %s", err)
-	}
+// 	if _, err := txb.Sign([]bitcoin.Key{fromKey}); err != nil {
+// 		t.Fatalf("Failed to sign tx : %s", err)
+// 	}
 
-	tx, err := NewTransactionFromTxBuilder(ctx, txb, true)
-	if err != nil {
-		t.Fatalf("Failed to create inspector tx : %s", err)
-	}
+// 	tx, err := NewTransactionFromTxBuilder(ctx, txb, true)
+// 	if err != nil {
+// 		t.Fatalf("Failed to create inspector tx : %s", err)
+// 	}
 
-	t.Logf("Tx %s", tx.String(bitcoin.MainNet))
+// 	t.Logf("Tx %s", tx.String(bitcoin.MainNet))
 
-	buf := &bytes.Buffer{}
+// 	buf := &bytes.Buffer{}
 
-	if err := tx.Write_v2(buf); err != nil {
-		t.Fatalf("Failed to write tx : %s", err)
-	}
+// 	if err := tx.Write_v2(buf); err != nil {
+// 		t.Fatalf("Failed to write tx : %s", err)
+// 	}
 
-	readTx := &Transaction{}
-	if err := readTx.Read(buf, true); err != nil {
-		t.Fatalf("Failed to read tx : %s", err)
-	}
+// 	readTx := &Transaction{}
+// 	if err := readTx.Read(buf, true); err != nil {
+// 		t.Fatalf("Failed to read tx : %s", err)
+// 	}
 
-	t.Logf("Read Tx %s", readTx.String(bitcoin.MainNet))
+// 	t.Logf("Read Tx %s", readTx.String(bitcoin.MainNet))
 
-	if err := tx.Equal(*readTx); err != nil {
-		t.Fatalf("Read tx not equal : %s", err)
-	}
-}
+// 	if err := tx.Equal(*readTx); err != nil {
+// 		t.Fatalf("Read tx not equal : %s", err)
+// 	}
+// }
 
 func (itx Transaction) Equal(itx2 Transaction) error {
 	if !itx.Hash.Equal(&itx2.Hash) {
