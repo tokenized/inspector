@@ -103,9 +103,10 @@ func NewTransactionFromHashWire(ctx context.Context, hash bitcoin.Hash32, tx *wi
 		return nil, errors.Wrap(ErrMissingOutputs, "parsing transaction")
 	}
 
+	txc := tx.Copy()
 	result := &Transaction{
 		Hash:  hash,
-		MsgTx: tx.Copy(),
+		MsgTx: &txc,
 	}
 
 	if err := result.Setup(ctx, isTest); err != nil {
@@ -120,18 +121,20 @@ func NewTransactionFromHashWire(ctx context.Context, hash bitcoin.Hash32, tx *wi
 // before the transaction is usable.
 func NewBaseTransactionFromHashWire(ctx context.Context, hash bitcoin.Hash32,
 	tx *wire.MsgTx) (*Transaction, error) {
+	txc := tx.Copy()
 	return &Transaction{
 		Hash:  hash,
-		MsgTx: tx.Copy(),
+		MsgTx: &txc,
 	}, nil
 }
 
 // NewBaseTransactionFromWire creates a non-setup transaction from a wire tx. This is the same as
 // NewTransactionFromWire except Setup must be called before the transaction is usable.
 func NewBaseTransactionFromWire(ctx context.Context, tx *wire.MsgTx) (*Transaction, error) {
+	txc := tx.Copy()
 	return &Transaction{
 		Hash:  *tx.TxHash(),
-		MsgTx: tx.Copy(),
+		MsgTx: &txc,
 	}, nil
 }
 

@@ -234,7 +234,7 @@ func (itx *Transaction) ParseInputsFromUTXOs(ctx context.Context, utxos []bitcoi
 	for i, txin := range itx.MsgTx.TxIn {
 		if txin.PreviousOutPoint.Index == 0xffffffff {
 			// Empty coinbase input
-			inputs = append(inputs, &Input{})
+			inputs[i] = &Input{}
 			continue
 		}
 
